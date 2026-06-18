@@ -16,18 +16,28 @@ This project is dedicated to the study of solar oscillations using **SunPy** and
 
 ## Requirements
 
-Since this project is primarily based on [SunPy](https://docs.sunpy.org/en/stable/tutorial/installation.html), we recommend using **Python 3.11** for optimal performance. It is also strongly recommended to work within a virtual environment (such as Conda or venv). 
+Since this project is primarily based on [SunPy](https://docs.sunpy.org/en/stable/tutorial/installation.html), we recommend using **Python 3.11** for optimal performance. It is also strongly recommended to work within a virtual environment (such as Conda, venv or the environment provided by `SunPy`). 
 
 ## Installation
 
-1. Clone this repository:
+1. ***Clone this repository:*** It is recommended to clone both repositories in the same parent folder to ensure the relative paths are correct:
 
 ```Bash
 git clone https://github.com/FlppeG/HelioResearch
+git clone https://github.com/AngelDMartinezC/sunpython.git
    cd helioresearch
 ```
 
-2. Create and activate a virtual environment:
+If done right, the folder structure should look like this:
+
+```text
+Parent_folder/
+├── helioresearch/
+└── sunpython/
+```
+
+
+2. ***Create and activate a virtual environment:*** You can either use a custom environment or the one provided by `SunPy`. For the first option:
 
 ```Bash
 # On Windows:
@@ -39,7 +49,14 @@ git clone https://github.com/FlppeG/HelioResearch
    source venv/bin/activate
 ```
 
-3. Install the dependencies:
+For the second option use
+
+```Bash
+conda create -n helio-env python=3.11
+conda activate helio-env
+```
+
+3. ***Install the dependencies:*** Install all the required libraries at once. This command will automatically install the necessary packages and set up `sunpython` in editable mode:
 
 ```Bash
 pip install -r requirements.txt

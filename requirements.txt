@@ -1,0 +1,17 @@
+astropy
+sunpy
+ndcube
+drms
+reproject
+spiceypy
+dask
+h5py
+matplotlib
+numpy
+pandas
+scikit-image
+scipy
+jupyterlab
+ipywidgets
+# Local package
+-e ../sunpython
