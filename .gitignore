@@ -216,3 +216,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Ignore FITS and data folders
+*.fits
+data/
+
+# Ignore Jupyter temps
+.ipynb_checkpoints/
