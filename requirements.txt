@@ -12,6 +12,7 @@ pandas
 scikit-image
 scipy
 jupyterlab
+subprocess
 ipywidgets
 # Local package
 -e ../sunpython
