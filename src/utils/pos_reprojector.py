@@ -42,6 +42,9 @@ def process_single_frame(input_path, output_path, base_header):
         frame_header = base_header.copy()
         frame_header['DATE-OBS'] = m.date.iso.replace(' ', 'T')
         frame_header['DSUN_OBS'] = m.dsun.to(u.m).value
+        frame_header['CRLN_OBS'] = m.meta.get('crln_obs', 0.0)      
+        frame_header['CRLT_OBS'] = m.meta.get('crlt_obs', 0.0)
+        frame_header['HGLT_OBS'] = m.meta.get('hglt_obs', m.meta.get('crlt_obs', 0.0))
 
         # Perform reprojection using cubic interpolation (order=3) for high fidelity
         reprojected = m.reproject_to(frame_header, order=3)
@@ -50,7 +53,7 @@ def process_single_frame(input_path, output_path, base_header):
     except Exception as e:
         return f"Error in {input_path.name}: {str(e)}"
 
-def pos_reprojector(data_dir, hpx_flare, hpy_flare, n_pix=100, pixel_scale=0.5):
+def pos_reprojector(data_dir, hpx_flare, hpy_flare, n_pix=100):
     """
     Coordinates the reprojection pipeline. Finds files, calculates the center,
     defines the Postel/ARC coordinate system, and executes processing in parallel.
@@ -68,6 +71,8 @@ def pos_reprojector(data_dir, hpx_flare, hpy_flare, n_pix=100, pixel_scale=0.5):
 
     # Use the first map to calculate the central heliographic coordinates of the target
     ref_map = sunpy.map.Map(fits_files[0])
+    scale_x = ref_map.scale.axis1.to(u.arcsec / u.pixel)
+    scale_y = ref_map.scale.axis2.to(u.arcsec / u.pixel)
     target_lon, target_lat = hpxy2lonlat(ref_map, hpx_flare, hpy_flare)
     print(f"Center at: Lon={target_lon.value:.2f}, Lat={target_lat.value:.2f}")
 
@@ -81,16 +86,17 @@ def pos_reprojector(data_dir, hpx_flare, hpy_flare, n_pix=100, pixel_scale=0.5):
     base_header['NAXIS'] = 2                                         
     base_header['NAXIS1'] = n_pix                                    
     base_header['NAXIS2'] = n_pix                                    
-    base_header['CUNIT1'] = 'arcsec'                                    
-    base_header['CUNIT2'] = 'arcsec'
-    base_header['CTYPE1'] = 'HGLN-ARC'                               
-    base_header['CTYPE2'] = 'HGLT-ARC'                               
+    base_header['CUNIT1'] = 'deg'                                    
+    base_header['CUNIT2'] = 'deg'
+    base_header['CTYPE1'] = 'CRLN-ARC'                               
+    base_header['CTYPE2'] = 'CRLT-ARC'                               
     base_header['CRVAL1'] = target_lon.to(u.deg).value
     base_header['CRVAL2'] = target_lat.to(u.deg).value
-    base_header['CDELT1'] = pixel_scale
-    base_header['CDELT2'] = pixel_scale
+    base_header['CDELT1'] = (scale_x.to(u.deg / u.pixel)).value
+    base_header['CDELT2'] = (scale_y.to(u.deg / u.pixel)).value
     base_header['CRPIX1'] = (n_pix + 1) / 2
     base_header['CRPIX2'] = (n_pix + 1) / 2
+    base_header['RSUN_REF'] = ref_map.meta.get('rsun_ref', 696000000.0)
     base_header['RSUN_OBS'] = ref_map.rsun_obs.to(u.arcsec).value    
     
     # Execution: Use ProcessPoolExecutor to handle files in parallel
@@ -114,7 +120,7 @@ if __name__ == '__main__':
     parser.add_argument('--dir', default='../../data', help="Raw data directory.")
     parser.add_argument('--hpx', type=float, required=True, help="Helioprojective X (arcsec)")
     parser.add_argument('--hpy', type=float, required=True, help="Helioprojective Y (arcsec)")
-    parser.add_argument('--res', type=int, default=100, help="Resolution/Cutout size in pixels")
+    parser.add_argument('--res', type=int, default=1000, help="Resolution/Cutout size in pixels")
     args = parser.parse_args()
     
     # Convert inputs to Astropy units
